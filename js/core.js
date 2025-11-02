@@ -1,7 +1,11 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'https://esm.sh/three@0.161.0';
+import { OrbitControls } from 'https://esm.sh/three@0.161.0/examples/jsm/controls/OrbitControls';
+
 import { initUI, getValues } from './ui.js';
 import { applyPhysics } from './physics.js';
+
+// Your existing logic here
+
 
 let scene, camera, renderer, sphere, material, analyser, dataArray, light, rotationSpeed = 0;
 let audioReady = false;
