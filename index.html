@@ -117,6 +117,55 @@ function drawCircle(){
     const hue=(i/dataArray.length)*360;
     ctx.strokeStyle=`hsl(${hue},100%,50%)`;
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  {
+}
+    function drawPulsingCircle(){
+  analyser.getByteFrequencyData(dataArray);
+  const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+  const radius = avg;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  ctx.arc(canvas.width/2, canvas.height/2, radius, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'magenta';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+    
+  }
+{
+
+    function drawSpiralDots(){
+  analyser.getByteFrequencyData(dataArray);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for(let i = 0; i < dataArray.length; i++){
+    const angle = i * 0.3;
+    const radius = i * 0.5;
+    const x = canvas.width/2 + Math.cos(angle) * radius;
+    const y = canvas.height/2 + Math.sin(angle) * radius;
+    const size = dataArray[i] / 64;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, 2 * Math.PI);
+    ctx.fillStyle = `hsl(${i}, 100%, 50%)`;
+    ctx.fill();
+
+  }
+}
+
+      function drawGridPulse(){
+  analyser.getByteFrequencyData(dataArray);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const cols = 16, rows = 8;
+  const cellW = canvas.width / cols;
+  const cellH = canvas.height / rows;
+  for(let i = 0; i < cols * rows; i++){
+    const val = dataArray[i % dataArray.length] / 255;
+    const x = (i % cols) * cellW;
+    const y = Math.floor(i / cols) * cellH;
+    ctx.fillStyle = `rgba(0, 255, 0, ${val})`;
+    ctx.fillRect(x, y, cellW, cellH);
+  }
+}
+
+
   }
 }
 </script>
