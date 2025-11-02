@@ -30,6 +30,9 @@ canvas{width:100%;height:100%;display:block}
   <option value="bars">Bars</option>
   <option value="wave">Waveform</option>
   <option value="circle">Circular Spectrum</option>
+  <option value="pulse">Pulsing Circle</option>
+  <option value="spiral">Spiral Dots</option>
+  <option value="grid">Grid Pulse</option>
 </select>
 <button id="startBtn">🎤 Start Fractal Harmonics</button>
 <canvas id="canvas"></canvas>
@@ -77,11 +80,13 @@ function draw(){
   ctx.fillStyle='rgba(0,0,0,0.25)';
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  switch(mode){
-    case 'bars': drawBars(); break;
-    case 'wave': drawWave(); break;
-    case 'circle': drawCircle(); break;
-  }
+ switch(mode){
+  case 'bars': drawBars(); break;
+  case 'wave': drawWave(); break;
+  case 'circle': drawCircle(); break;
+  case 'pulse': drawPulsingCircle(); break;
+  case 'spiral': drawSpiralDots(); break;
+  case 'grid': drawGridPulse(); break;
 }
 
 function drawBars(){
