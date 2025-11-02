@@ -1,34 +1,50 @@
-export function initUI(light) {
-  const minimizeBtn = document.getElementById('minimizeBtn');
-  const panel = document.getElementById('controlPanel');
+let values = {
+  intensity: 0.0,
+  shininess: 0.0,
+  opacity: 0.0,
+  rotationSpeed: 0.0
+};
 
-  minimizeBtn.addEventListener('click', () => {
-    panel.classList.toggle('minimized');
+export function initUI(updateCallback) {
+  const panel = document.createElement('div');
+  panel.style.position = 'absolute';
+  panel.style.top = '10px';
+  panel.style.left = '10px';
+  panel.style.padding = '12px';
+  panel.style.background = 'rgba(255,255,255,0.1)';
+  panel.style.border = '1px solid #aaa';
+  panel.style.borderRadius = '8px';
+  panel.style.backdropFilter = 'blur(8px)';
+  panel.style.color = '#fff';
+  panel.style.zIndex = 1000;
+
+  const sliderDefs = [
+    { key: 'intensity', label: 'Light Intensity' },
+    { key: 'shininess', label: 'Shininess' },
+    { key: 'opacity', label: 'Opacity' },
+    { key: 'rotationSpeed', label: 'Rotation Speed' }
+  ];
+
+  sliderDefs.forEach(({ key, label }) => {
+    const container = document.createElement('div');
+    container.innerHTML = `<label>${label}</label><br>`;
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = 0;
+    slider.max = 1;
+    slider.step = 0.01;
+    slider.value = 0;
+    slider.oninput = () => {
+      values[key] = parseFloat(slider.value);
+      updateCallback(values);
+    };
+    container.appendChild(slider);
+    panel.appendChild(container);
   });
 
-  // Touch interaction for trackball
-  let dragging = false;
-  document.addEventListener('mousedown', () => dragging = true);
-  document.addEventListener('mouseup', () => dragging = false);
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    const x = (e.clientX / window.innerWidth - 0.5) * Math.PI * 2;
-    const y = (e.clientY / window.innerHeight - 0.5) * Math.PI;
-    light.position.set(Math.sin(x) * 2, Math.sin(y) * 2, Math.cos(x) * 2);
-  });
+  document.body.appendChild(panel);
 }
 
 export function getValues() {
-  return {
-    viscosity: parseFloat(document.getElementById('viscosity').value),
-    elasticity: parseFloat(document.getElementById('elasticity').value),
-    amplitude: parseFloat(document.getElementById('amplitude').value),
-    lightIntensity: parseFloat(document.getElementById('lightIntensity').value),
-    shininess: parseFloat(document.getElementById('shininess').value),
-    opacity: parseFloat(document.getElementById('opacity').value),
-    rotationSpeed: parseFloat(document.getElementById('rotationSpeed').value),
-    sphereColor: document.getElementById('sphereColor').value,
-    lightColor: document.getElementById('lightColor').value,
-    backgroundColor: document.getElementById('backgroundColor').value,
-  };
+  return values;
 }
