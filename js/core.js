@@ -4,29 +4,41 @@ import { initUI, getValues } from './ui.js';
 import { applyPhysics } from './physics.js';
 
 let scene, camera, renderer, sphere, material, analyser, dataArray, light, rotationSpeed = 0;
+let audioReady = false;
 
+// ---------- AUDIO SETUP ----------
 async function initAudio() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const src = ctx.createMediaStreamSource(stream);
-  analyser = ctx.createAnalyser();
-  analyser.fftSize = 256;
-  dataArray = new Uint8Array(analyser.frequencyBinCount);
-  src.connect(analyser);
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const src = ctx.createMediaStreamSource(stream);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    src.connect(analyser);
+    audioReady = true;
+    console.log("✅ Audio initialized");
+  } catch (e) {
+    console.warn("⚠️ Microphone unavailable — running visualizer fallback mode.");
+    audioReady = false;
+  }
 }
 
+// ---------- SCENE SETUP ----------
 async function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
   camera.position.z = 3;
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
+  const vertexShader = await fetch('./shaders/vertex.glsl', { cache: 'no-store' }).then(r => r.text());
+  const fragmentShader = await fetch('./shaders/fragment.glsl', { cache: 'no-store' }).then(r => r.text());
+
   const geometry = new THREE.SphereGeometry(1, 128, 128);
-  const vertexShader = await fetch('./shaders/vertex.glsl').then(r => r.text());
-  const fragmentShader = await fetch('./shaders/fragment.glsl').then(r => r.text());
 
   material = new THREE.ShaderMaterial({
     vertexShader,
@@ -50,6 +62,10 @@ async function initScene() {
   light.position.set(1, 1, 1);
   scene.add(light);
 
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableZoom = false;
+  controls.enablePan = false;
+
   window.addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
@@ -57,13 +73,28 @@ async function initScene() {
   });
 }
 
+// ---------- RENDER LOOP ----------
 function animate(t = 0) {
   requestAnimationFrame(animate);
-  if (!analyser) return;
-  analyser.getByteFrequencyData(dataArray);
 
-  const avg = dataArray.reduce((a, b) => a + b) / dataArray.length / 255;
-  const { viscosity, elasticity, amplitude, lightIntensity, shininess, opacity, rotationSpeed: rs, sphereColor, lightColor, backgroundColor } = getValues();
+  let avg = 0;
+  if (audioReady && analyser) {
+    analyser.getByteFrequencyData(dataArray);
+    avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length / 255;
+  }
+
+  const {
+    viscosity,
+    elasticity,
+    amplitude,
+    lightIntensity,
+    shininess,
+    opacity,
+    rotationSpeed: rs,
+    sphereColor,
+    lightColor,
+    backgroundColor
+  } = getValues();
 
   rotationSpeed = rs;
   light.intensity = lightIntensity;
@@ -73,14 +104,22 @@ function animate(t = 0) {
   material.uniforms.uShininess.value = shininess;
   renderer.setClearColor(backgroundColor);
 
-  applyPhysics(sphere.geometry, avg, viscosity, elasticity, amplitude);
+  // Apply physics or fallback gentle motion
+  if (audioReady) {
+    applyPhysics(sphere.geometry, avg, viscosity, elasticity, amplitude);
+  } else {
+    const gentlePulse = (Math.sin(t * 0.001) + 1) * 0.02;
+    applyPhysics(sphere.geometry, gentlePulse, 0.3, 0.5, 0.3);
+  }
 
   sphere.rotation.y += rotationSpeed * 0.005;
   material.uniforms.uAudio.value = avg;
   material.uniforms.uTime.value = t * 0.001;
+
   renderer.render(scene, camera);
 }
 
+// ---------- START ----------
 (async function start() {
   await initScene();
   await initAudio();
