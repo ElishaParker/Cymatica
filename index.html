@@ -117,7 +117,7 @@ function drawCircle(){
     const hue=(i/dataArray.length)*360;
     ctx.strokeStyle=`hsl(${hue},100%,50%)`;
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-  {
+  }
 }
     function drawPulsingCircle(){
   analyser.getByteFrequencyData(dataArray);
@@ -130,8 +130,8 @@ function drawCircle(){
   ctx.lineWidth = 4;
   ctx.stroke();
     
-  }
-{
+    
+}
 
     function drawSpiralDots(){
   analyser.getByteFrequencyData(dataArray);
